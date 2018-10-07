@@ -22,10 +22,10 @@ RCMDcheck <- R6Class(
   "RCMDcheck", inherit = TicStepWithPackageDeps,
 
   public = list(
-    initialize = function(warnings_are_errors = TRUE, notes_are_errors = FALSE,
+    initialize = function(path = ".", error_on = "error",
                           args = c("--no-manual", "--as-cran"), build_args = "--force") {
-      private$warnings_are_errors <- warnings_are_errors
-      private$notes_are_errors <- notes_are_errors
+      private$path <- path
+      private$error_on <- error_on
       private$args <- args
       private$build_args <- build_args
 
@@ -33,18 +33,19 @@ RCMDcheck <- R6Class(
     },
 
     run = function() {
-      res <- rcmdcheck::rcmdcheck(args = private$args)
+      res <- rcmdcheck::rcmdcheck(path = private$path, args = private$args,
+                                  error_on = private$error_on)
 
       print(res)
       if (length(res$errors) > 0) {
         stopc("Errors found.")
       }
-      if (private$warnings_are_errors && length(res$warnings) > 0) {
-        stopc("Warnings found, and `warnings_are_errors` is set.")
-      }
-      if (private$notes_are_errors && length(res$notes) > 0) {
-        stopc("Notes found, and `notes_are_errors` is set.")
-      }
+      # if (private$warnings_are_errors && length(res$warnings) > 0) {
+      #   stopc("Warnings found, and `warnings_are_errors` is set.")
+      # }
+      # if (private$notes_are_errors && length(res$notes) > 0) {
+      #   stopc("Notes found, and `notes_are_errors` is set.")
+      # }
     },
 
     prepare = function() {
@@ -54,8 +55,7 @@ RCMDcheck <- R6Class(
   ),
 
   private = list(
-    warnings_are_errors = NULL,
-    notes_are_errors = NULL,
+    error_on = NULL,
     args = NULL,
     build_args = NULL
   )
