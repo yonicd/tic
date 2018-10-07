@@ -86,12 +86,12 @@ RCMDcheck <- R6Class(
 #'   Passed to `[rcmdcheck::rcmdcheck()]`, default:
 #'   `"--force"`.
 #' @export
-step_rcmdcheck <- function(warnings_are_errors = TRUE, notes_are_errors = FALSE,
+step_rcmdcheck <- function(path = ".", error_on = "error",
                            args = c("--no-manual", "--as-cran"),
                            build_args = "--force") {
   RCMDcheck$new(
-    warnings_are_errors = warnings_are_errors,
-    notes_are_errors = notes_are_errors,
+    path = path,
+    error_on = error_on,
     args = args,
     build_args = build_args
   )

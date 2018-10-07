@@ -4,16 +4,10 @@
 \alias{step_rcmdcheck}
 \title{Step: Check a package}
 \usage{
-step_rcmdcheck(warnings_are_errors = TRUE, notes_are_errors = FALSE,
+step_rcmdcheck(path = ".", error_on = "error",
   args = c("--no-manual", "--as-cran"), build_args = "--force")
 }
 \arguments{
-\item{warnings_are_errors}{\code{[flag]}\cr
-Should warnings be treated as errors? Default: \code{TRUE}.}
-
-\item{notes_are_errors}{\code{[flag]}\cr
-Should notes be treated as errors? Default: \code{FALSE}.}
-
 \item{args}{\code{[character]}\cr
 Passed to \code{[rcmdcheck::rcmdcheck()]}, default:
 \code{c("--no-manual", "--as-cran")}.}
@@ -21,6 +15,12 @@ Passed to \code{[rcmdcheck::rcmdcheck()]}, default:
 \item{build_args}{\code{[character]}\cr
 Passed to \code{[rcmdcheck::rcmdcheck()]}, default:
 \code{"--force"}.}
+
+\item{warnings_are_errors}{\code{[flag]}\cr
+Should warnings be treated as errors? Default: \code{TRUE}.}
+
+\item{notes_are_errors}{\code{[flag]}\cr
+Should notes be treated as errors? Default: \code{FALSE}.}
 }
 \description{
 Check a package using \pkg{rcmdcheck}, which ultimately calls \code{R CMD check}.

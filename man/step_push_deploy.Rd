@@ -44,7 +44,7 @@ can be supported (and will be used).
 
 For more control, create two separate steps with
 \code{step_setup_push_deploy()} and \code{step_do_push_deploy()},
-and create the files to be deployed inbetween these steps.
+and create the files to be deployed in between these steps.
 }
 \seealso{
 Other deploy steps: \code{\link{step_do_push_deploy}},
