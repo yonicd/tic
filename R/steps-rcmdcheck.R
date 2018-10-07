@@ -34,7 +34,8 @@ RCMDcheck <- R6Class(
 
     run = function() {
       res <- rcmdcheck::rcmdcheck(path = private$path, args = private$args,
-                                  error_on = private$error_on)
+                                  error_on = private$error_on,
+                                  build_args = private$build_args)
 
       print(res)
       if (length(res$errors) > 0) {
@@ -55,6 +56,7 @@ RCMDcheck <- R6Class(
   ),
 
   private = list(
+    path = NULL,
     error_on = NULL,
     args = NULL,
     build_args = NULL
