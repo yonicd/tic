@@ -6,8 +6,7 @@ test_that("integration test: early failure", {
   cat("\n")
   dir.create(package_path)
   withr::with_dir(
-    package_path,
-    {
+    package_path, {
       writeLines(
         'get_stage("script") %>% add_code_step(stop("oops")) %>% add_code_step(writeLines(character(), "out.txt"))',
         "tic.R"
@@ -15,7 +14,7 @@ test_that("integration test: early failure", {
       expect_error(
         callr::r(
           function() {
-            tic::tic()
+            tic::run_all_stages()
           },
           show = TRUE,
           env = c(callr::rcmd_safe_env(), TIC_LOCAL = "true")

@@ -1,5 +1,55 @@
+InstallDeps <- R6Class(
+  "InstallDeps",
+  inherit = TicStep,
+
+  public = list(
+    initialize = function(repos = repo_default()) {
+      private$repos <- repos
+    },
+
+    prepare = function() {
+      verify_install("remotes")
+    },
+
+    run = function() {
+      remotes::install_deps(dependencies = TRUE, repos = private$repos)
+    }
+  ),
+
+  private = list(
+    repos = NULL
+  )
+)
+
+#' Step: Install packages
+#'
+#' @description
+#' These steps are useful if your CI run needs additional packages.
+#' Usually they are declared as dependencies in your `DESCRIPTION`,
+#' but it is also possible to install dependencies manually.
+#'
+#' A `step_install_deps()` step installs all package dependencies declared in
+#' `DESCRIPTION`, using [remotes::install_deps()].
+#' This includes upgrading outdated packages.
+#'
+#' @param repos CRAN-like repositories to install from, defaults to
+#'   [repo_default()].
+#' @family steps
+#' @export
+#' @name step_install_pkg
+step_install_deps <- function(repos = repo_default()) {
+  InstallDeps$new(repos = repos)
+}
+
+
+
+
+
+
+
 InstallCRAN <- R6Class(
-  "InstallCRAN", inherit = TicStep,
+  "InstallCRAN",
+  inherit = TicStep,
 
   public = list(
     initialize = function(package, ...) {
@@ -11,7 +61,7 @@ InstallCRAN <- R6Class(
       if (length(find.package(private$package, quiet = TRUE)) == 0) {
         do.call(install.packages, c(list(pkg = private$package), private$install_args))
       } else {
-        message(glue::glue("Package '{private$package}' already installed."))
+        message(paste0("Package ", private$package, " already installed."))
       }
     }
   ),
@@ -21,23 +71,16 @@ InstallCRAN <- R6Class(
   )
 )
 
-#' Step: Install packages
-#'
 #' @description
-#' These steps are useful if your CI run needs packages which are not declared
-#' as dependencies in your `DESCRIPTION`.
-#' Usually you should declare these dependencies, but this may not always be desired.
-#'
 #' A `step_install_cran()` step installs one package from CRAN via [install.packages()],
 #' but only if it's not already installed.
 #'
 #' @param package Package(s) to install
 #' @param ... Passed on to `install.packages()` or `remotes::install_github()`.
-#' @family steps
 #' @export
-#' @name step_install_pkg
-step_install_cran <- function(package = NULL, ...) {
-  InstallCRAN$new(package = package, ...)
+#' @rdname step_install_pkg
+step_install_cran <- function(package = NULL, ..., repos = repo_default()) {
+  InstallCRAN$new(package = package, repos = repos, ...)
 }
 
 
@@ -47,7 +90,8 @@ step_install_cran <- function(package = NULL, ...) {
 
 
 InstallGithub <- R6Class(
-  "InstallGithub", inherit = TicStep,
+  "InstallGithub",
+  inherit = TicStep,
 
   public = list(
     initialize = function(repo, ...) {
@@ -73,7 +117,6 @@ InstallGithub <- R6Class(
 #' GitHub version is different from the locally installed version.
 #'
 #' @param repo Package to install in the "user/repo" format.
-#' @family steps
 #' @export
 #' @rdname step_install_pkg
 step_install_github <- function(repo = NULL, ...) {

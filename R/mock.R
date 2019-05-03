@@ -1,6 +1,7 @@
 #' @include ci.R
 MockCI <- R6Class(
-  "MockCI", inherit = CI,
+  "MockCI",
+  inherit = CI,
 
   public = list(
     get_branch = function() {
@@ -23,6 +24,18 @@ MockCI <- R6Class(
     },
     get_commit = function() {
       "00000000000000000000000000000000"
+    },
+    can_push = function(name = "id_rsa") {
+      self$has_env(name)
+    },
+    get_env = function(env) {
+      Sys.getenv(env)
+    },
+    is_env = function(env, value) {
+      self$get_env(env) == value
+    },
+    has_env = function(env) {
+      self$get_env(env) != ""
     },
     is_interactive = function() {
       TRUE

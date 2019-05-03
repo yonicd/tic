@@ -1,5 +1,6 @@
 LocalCI <- R6Class(
-  "LocalCI", inherit = CI,
+  "LocalCI",
+  inherit = CI,
 
   public = list(
     get_branch = function() {
@@ -23,6 +24,18 @@ LocalCI <- R6Class(
     },
     get_commit = function() {
       git2r::revparse_single(revision = "HEAD")$sha
+    },
+    can_push = function(name = "id_rsa") {
+      TRUE
+    },
+    get_env = function(env) {
+      Sys.getenv(env)
+    },
+    is_env = function(env, value) {
+      self$get_env(env) == value
+    },
+    has_env = function(env) {
+      self$get_env(env) != ""
     },
     is_interactive = function() {
       TRUE

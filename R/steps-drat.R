@@ -1,10 +1,10 @@
 AddToDrat <- R6Class(
-  "AddToDrat", inherit = TicStep,
+  "AddToDrat",
+  inherit = TicStep,
 
   public = list(
     prepare = function() {
-      verify_install("drat", "remotes", "knitr", "withr")
-      remotes::install_github("r-lib/pkgbuild")
+      verify_install("drat", "remotes", "knitr", "withr", "pkgbuild")
     },
 
     run = function() {

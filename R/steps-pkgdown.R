@@ -1,6 +1,7 @@
 #' @include steps-rcmdcheck.R
 BuildPkgdown <- R6Class(
-  "BuildPkgdown", inherit = TicStepWithPackageDeps,
+  "BuildPkgdown",
+  inherit = TicStep,
 
   public = list(
     initialize = function(...) {
@@ -28,7 +29,7 @@ BuildPkgdown <- R6Class(
 #'
 #' Builds package documentation with the \pkg{pkgdown} package.
 #'
-#' @param ... Passed on to `pkgdown::build_site()`
+#' @inheritDotParams pkgdown::build_site
 #' @family steps
 #' @export
 step_build_pkgdown <- function(...) {

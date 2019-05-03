@@ -5,7 +5,7 @@ test_that("integration test: git", {
   # - Commit only a subset of changes that occur during deployment
   # - Check that only these changes are really committed
 
-  bare_repo_path <- tempfile("ticrepo")
+  bare_repo_path <- tempfile_slash("ticrepo")
   dir.create(bare_repo_path)
   git2r::init(bare_repo_path, bare = TRUE)
 
@@ -14,8 +14,7 @@ test_that("integration test: git", {
 
   cat("\n")
   withr::with_dir(
-    package_path,
-    {
+    package_path, {
       writeLines(
         c(
           'get_stage("deploy") %>%',
@@ -35,11 +34,10 @@ test_that("integration test: git", {
   )
 
   withr::with_dir(
-    package_path,
-    {
+    package_path, {
       callr::r(
         function() {
-          tic::tic()
+          tic::run_all_stages()
         },
         show = TRUE,
         env = c(callr::rcmd_safe_env(), TIC_LOCAL = "true")
@@ -54,8 +52,7 @@ test_that("integration test: git", {
   git2r::clone(bare_repo_path, package_path_2)
 
   withr::with_dir(
-    package_path_2,
-    {
+    package_path_2, {
       expect_false(file.exists("time.txt"))
       expect_true(file.exists("deploy/time.txt"))
     }

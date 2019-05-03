@@ -14,21 +14,25 @@ test_that("integration test: git race condition", {
   # to `dir.txt` .
   # Deployment always updates the tip of the repo.
 
-  bare_repo_path <- tempfile("ticrepo")
+  base_path <- tempfile_slash("git-race-")
+  dir.create(base_path)
+  tmp <- function(x) file.path(base_path, x)
+
+
+  bare_repo_path <- tmp("bare_repo")
   dir.create(bare_repo_path)
   git2r::init(bare_repo_path, bare = TRUE)
 
-  package_path <- tempfile("ticpkg", fileext = "pkg")
+  package_path <- tmp("package")
   git2r::clone(bare_repo_path, package_path)
 
   cat("\n")
   withr::with_dir(
-    package_path,
-    {
+    package_path, {
       writeLines(
         c(
           'get_stage("deploy") %>%',
-          '  add_code_step(writeLines(sort(dir(pattern = "[.]txt$")), "dir.txt")) %>%',
+          '  add_code_step(writeLines(sort(dir(pattern = "^clone[.]txt$")), "dir.txt")) %>%',
           paste0('  add_step(step_push_deploy(remote_url = "', bare_repo_path, '"))')
         ),
         "tic.R"
@@ -40,12 +44,11 @@ test_that("integration test: git race condition", {
     }
   )
 
-  package_path_2 <- tempfile("ticpkg", fileext = "pkg")
+  package_path_2 <- tmp("package_2")
   git2r::clone(bare_repo_path, package_path_2)
 
   withr::with_dir(
-    package_path_2,
-    {
+    package_path_2, {
       writeLines(character(), "clone.txt")
       git2r::config(user.name = "tic-clone", user.email = "tic-clone@pkg.test")
       git2r::add(path = ".")
@@ -54,12 +57,11 @@ test_that("integration test: git race condition", {
     }
   )
 
-  package_path_3 <- tempfile("ticpkg", fileext = "pkg")
+  package_path_3 <- tmp("package_3")
   git2r::clone(bare_repo_path, package_path_3)
 
   withr::with_dir(
-    package_path_3,
-    {
+    package_path_3, {
       writeLines("clone-contents", "clone.txt")
       git2r::config(user.name = "tic-clone-2", user.email = "tic-clone-2@pkg.test")
       git2r::add(path = ".")
@@ -69,11 +71,10 @@ test_that("integration test: git race condition", {
   )
 
   withr::with_dir(
-    package_path,
-    {
+    package_path, {
       callr::r(
         function() {
-          tic::tic()
+          tic::run_all_stages()
         },
         show = TRUE,
         env = c(callr::rcmd_safe_env(), TIC_LOCAL = "true")
@@ -85,11 +86,10 @@ test_that("integration test: git race condition", {
   expect_match(last_bare_commit$message, "Deploy from local build")
 
   withr::with_dir(
-    package_path_2,
-    {
+    package_path_2, {
       callr::r(
         function() {
-          tic::tic()
+          tic::run_all_stages()
         },
         show = TRUE,
         env = c(callr::rcmd_safe_env(), TIC_LOCAL = "true")
@@ -98,20 +98,18 @@ test_that("integration test: git race condition", {
   )
 
   withr::with_dir(
-    package_path,
-    {
-      git2r::pull()
+    package_path, {
+      system("git pull")
       expect_true(file.exists("clone.txt"))
-      expect_equal(readLines("dir.txt"), sort(dir(pattern = "[.]txt$")))
+      expect_equal(readLines("dir.txt"), sort(dir(pattern = "^clone[.]txt$")))
     }
   )
 
   withr::with_dir(
-    package_path_3,
-    {
+    package_path_3, {
       callr::r(
         function() {
-          tic::tic()
+          tic::run_all_stages()
         },
         show = TRUE,
         env = c(callr::rcmd_safe_env(), TIC_LOCAL = "true")
@@ -120,12 +118,11 @@ test_that("integration test: git race condition", {
   )
 
   withr::with_dir(
-    package_path,
-    {
-      git2r::pull()
+    package_path, {
+      system("git pull")
       expect_true(file.exists("clone.txt"))
       expect_identical(readLines("clone.txt"), "clone-contents")
-      expect_equal(readLines("dir.txt"), sort(dir(pattern = "[.]txt$")))
+      expect_equal(readLines("dir.txt"), sort(dir(pattern = "^clone[.]txt$")))
     }
   )
 })

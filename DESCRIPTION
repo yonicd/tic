@@ -1,7 +1,7 @@
 Type: Package
 Package: tic
 Title: Tasks Integrating Continuously: CI-Agnostic Workflow Definitions
-Version: 0.2.13.9010
+Version: 0.2.13.9015
 Authors@R: c(
     person("Kirill", "M\u00fcller", email = "krlmlr+r@mailbox.org", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-1416-3412")),
     person("Mika", "Braginsky", email = "mika.br@gmail.com", role = c("aut")),
@@ -23,25 +23,30 @@ Depends:
     R (>= 3.0.0)
 Imports: 
     backports,
+    cli,
     crayon,
     magrittr,
     memoise,
     methods,
+    remotes,
     R6,
+    rlang,
     withr
 Suggests: 
     base64enc,
+    bookdown,
     callr,
     covr,
+    devtools,
     drat,
+    fansi,
     git2r,
     knitr,
     openssl,
     rcmdcheck,
-    remotes,
     rmarkdown,
     testthat,
-    travis,
+    travis (>= 0.2.11.9001),
     usethis
 VignetteBuilder: knitr
 Remotes: 
@@ -51,19 +56,27 @@ ByteCompile: No
 Encoding: UTF-8
 LazyData: TRUE
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 6.1.0.9000
+RoxygenNote: 6.1.1
 Collate: 
     'ci.R'
     'appveyor.R'
     'base64.R'
+    'dsl-storage.R'
     'dsl.R'
     'git2r.R'
     'keys.R'
     'local.R'
+    'macro.R'
+    'macro-package-checks.R'
+    'macro-pkgdown.R'
+    'macro-bookdown.R'
     'mock.R'
+    'print.R'
+    'repo.R'
     'run.R'
     'stage.R'
     'steps-base.R'
+    'steps-bookdown.R'
     'steps-code.R'
     'steps-drat.R'
     'steps-git.R'
@@ -74,4 +87,5 @@ Collate:
     'steps-write-text-file.R'
     'tic-package.R'
     'travis.R'
+    'use_tic.R'
     'utils.R'

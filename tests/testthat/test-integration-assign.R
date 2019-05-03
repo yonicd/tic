@@ -6,8 +6,7 @@ test_that("integration test: assign (#33)", {
   cat("\n")
   dir.create(package_path)
   withr::with_dir(
-    package_path,
-    {
+    package_path, {
       writeLines(
         'script_stage <- get_stage("script")',
         "tic.R"
@@ -15,7 +14,7 @@ test_that("integration test: assign (#33)", {
       expect_error(
         callr::r(
           function() {
-            tic::tic()
+            tic::run_all_stages()
           },
           show = TRUE,
           env = c(callr::rcmd_safe_env(), TIC_LOCAL = "true")

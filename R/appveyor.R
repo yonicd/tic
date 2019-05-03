@@ -1,7 +1,8 @@
 # nocov start
 #' @include ci.R
 AppVeyorCI <- R6Class(
-  "AppVeyorCI", inherit = CI,
+  "AppVeyorCI",
+  inherit = CI,
 
   public = list(
     get_branch = function() {
@@ -17,13 +18,28 @@ AppVeyorCI <- R6Class(
       Sys.getenv("APPVEYOR_REPO_NAME")
     },
     get_build_number = function() {
-      paste0("AppVeyor build ", Sys.getenv("APPVEYOR_BUILD_NUMBER"))
+      paste0("AppVeyor build ", self$get_env("APPVEYOR_BUILD_NUMBER"))
     },
     get_build_url = function() {
-      paste0("https://ci.appveyor.com/project/", self$get_slug(), "/build/", Sys.getenv("APPVEYOR_BUILD_VERSION"))
+      paste0("https://ci.appveyor.com/project/", self$get_slug(), "/build/", self$get_env("APPVEYOR_BUILD_VERSION"))
     },
     get_commit = function() {
       Sys.getenv("TRAVIS_COMMIT")
+    },
+    can_push = function(name = "id_rsa") {
+      self$has_env(name)
+    },
+    get_env = function(env) {
+      Sys.getenv(env)
+    },
+    is_env = function(env, value) {
+      self$get_env(env) == value
+    },
+    has_env = function(env) {
+      self$get_env(env) != ""
+    },
+    on_appveyor = function() {
+      TRUE
     }
   )
 )

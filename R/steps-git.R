@@ -1,6 +1,5 @@
 Git <- R6Class(
   "Git",
-
   public = list(
     initialize = function(path) {
       private$path <- path
@@ -39,18 +38,18 @@ Git <- R6Class(
 )
 
 SetupPushDeploy <- R6Class(
-  "SetupPushDeploy", inherit = TicStep,
+  "SetupPushDeploy",
+  inherit = TicStep,
 
   public = list(
-    initialize = function(path = ".", branch = ci()$get_branch(), orphan = FALSE,
-                          remote_url = paste0("git@github.com:", ci()$get_slug(), ".git"),
-                          checkout = TRUE) {
+    initialize = function(path = ".", branch = NULL, orphan = FALSE,
+                          remote_url = NULL, checkout = TRUE) {
 
-      if (branch == ci()$get_branch() && orphan) {
+      if (is.null(branch) && orphan) {
         stop("Cannot orphan the branch that has been used for the CI run.", call. = FALSE)
       }
 
-      if (branch == ci()$get_branch() && path != ".") {
+      if (is.null(branch) && path != ".") {
         stop("Must specify branch name if `path` is given.", call. = FALSE)
       }
 
@@ -58,11 +57,24 @@ SetupPushDeploy <- R6Class(
         stop("If `checkout` is FALSE and `path` is set, `orphan` must be TRUE.")
       }
 
+      if (is.null(branch)) {
+        branch <- ci_get_branch()
+      }
+
+      if (is.null(remote_url)) {
+        remote_url <- paste0("git@github.com:", ci_get_slug(), ".git")
+      }
+
       private$git <- Git$new(path)
       private$branch <- branch
       private$orphan <- orphan
       private$remote_url <- remote_url
       private$checkout <- checkout
+    },
+
+    prepare = function() {
+      verify_install("git2r")
+      super$prepare()
     },
 
     run = function() {
@@ -128,8 +140,10 @@ SetupPushDeploy <- R6Class(
             }
           },
           error = function(e) {
-            message(conditionMessage(e),
-                    "\nCould not fetch branch, will attempt to create new")
+            message(
+              conditionMessage(e),
+              "\nCould not fetch branch, will attempt to create new"
+            )
           }
         )
       }
@@ -141,7 +155,6 @@ SetupPushDeploy <- R6Class(
       branches <- git2r::branches(private$git$get_repo(), "remote")
       branches[[paste0(remote_name, "/", private$branch)]]
     }
-
   )
 )
 
@@ -170,9 +183,8 @@ SetupPushDeploy <- R6Class(
 #' @family deploy steps
 #' @family steps
 #' @export
-step_setup_push_deploy <- function(path = ".", branch = ci()$get_branch(), orphan = FALSE,
-                                   remote_url = paste0("git@github.com:", ci()$get_slug(), ".git"),
-                                   checkout = TRUE) {
+step_setup_push_deploy <- function(path = ".", branch = NULL, orphan = FALSE,
+                                   remote_url = NULL, checkout = TRUE) {
   SetupPushDeploy$new(
     path = path, branch = branch, orphan = orphan,
     remote_url = remote_url, checkout = checkout
@@ -180,7 +192,8 @@ step_setup_push_deploy <- function(path = ".", branch = ci()$get_branch(), orpha
 }
 
 DoPushDeploy <- R6Class(
-  "DoPushDeploy", inherit = TicStep,
+  "DoPushDeploy",
+  inherit = TicStep,
 
   public = list(
     initialize = function(path = ".", commit_message = NULL, commit_paths = ".") {
@@ -194,7 +207,12 @@ DoPushDeploy <- R6Class(
     },
 
     check = function() {
-      ci()$is_tag()
+      !ci_is_tag()
+    },
+
+    prepare = function() {
+      verify_install("git2r")
+      super$prepare()
     },
 
     run = function() {
@@ -263,9 +281,9 @@ DoPushDeploy <- R6Class(
 
     format_commit_message = function() {
       paste0(
-        "Deploy from ", ci()$get_build_number(), " [ci skip]\n\n",
-        if (!is.null(ci()$get_build_url())) paste0("Build URL: ", ci()$get_build_url(), "\n"),
-        "Commit: ", ci()$get_commit()
+        "Deploy from ", ci_get_build_number(), " [ci skip]\n\n",
+        if (!is.null(ci_get_build_url())) paste0("Build URL: ", ci_get_build_url(), "\n"),
+        "Commit: ", ci_get_commit()
       )
     }
   )
@@ -307,11 +325,12 @@ step_do_push_deploy <- function(path = ".", commit_message = NULL, commit_paths 
 }
 
 PushDeploy <- R6Class(
-  "PushDeploy", inherit = TicStep,
+  "PushDeploy",
+  inherit = TicStep,
 
   public = list(
-    initialize = function(path = ".", branch = ci()$get_branch(),
-                          remote_url = paste0("git@github.com:", ci()$get_slug(), ".git"),
+    initialize = function(path = ".", branch = ci_get_branch(),
+                          remote_url = paste0("git@github.com:", ci_get_slug(), ".git"),
                           commit_message = NULL, commit_paths = ".") {
 
       orphan <- (path != ".")
@@ -324,11 +343,15 @@ PushDeploy <- R6Class(
       private$do <- step_do_push_deploy(
         path = path, commit_message = commit_message, commit_paths = commit_paths
       )
-
     },
 
     check = function() {
       private$setup$check() && private$do$check()
+    },
+
+    prepare = function() {
+      private$setup$prepare()
+      private$do$prepare()
     },
 
     run = function() {
@@ -367,8 +390,8 @@ PushDeploy <- R6Class(
 #' @family steps
 #'
 #' @export
-step_push_deploy <- function(path = ".", branch = ci()$get_branch(),
-                             remote_url = paste0("git@github.com:", ci()$get_slug(), ".git"),
+step_push_deploy <- function(path = ".", branch = NULL,
+                             remote_url = NULL,
                              commit_message = NULL, commit_paths = ".") {
   PushDeploy$new(
     path = path, branch = branch,

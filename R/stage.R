@@ -1,6 +1,5 @@
-Stage <- R6Class(
-  "Stage",
-
+TicStage <- R6Class(
+  "TicStage",
   public = list(
     initialize = function(name) {
       private$name <- name
@@ -8,8 +7,10 @@ Stage <- R6Class(
     },
 
     add_step = function(step, code) {
-      self$add_task(run = step$run, check = step$check, prepare = step$prepare,
-                    name = code)
+      self$add_task(
+        run = step$run, check = step$check, prepare = step$prepare,
+        name = code
+      )
     },
 
     add_task = function(run, check = NULL, prepare = NULL, name = NULL) {
@@ -21,6 +22,10 @@ Stage <- R6Class(
       )
       private$steps <- c(private$steps, list(step))
       invisible(self)
+    },
+
+    is_empty = function() {
+      is_empty(private$steps)
     },
 
     reset = function() {
@@ -36,8 +41,22 @@ Stage <- R6Class(
       success <- TRUE
       for (step in private$steps) {
         if (!private$run_one(step)) {
-          stopc('A step failed in stage "', private$name, '": ', private$name, '.')
+          stopc('A step failed in stage "', private$name, '": ', private$name, ".")
         }
+      }
+    },
+
+    print = function(..., omit_if_empty = FALSE) {
+      if (omit_if_empty && length(private$steps) == 0) {
+        return()
+      }
+      cat_rule(private$name, right = "stage", col = "green")
+
+      if (length(private$steps) == 0) {
+        cat_bullet("No steps defined", bullet = "info")
+      } else {
+        cat_rule(private$name, right = "stage", col = "green")
+        lapply(private$steps, function(x) cat_bullet(x$name, bullet = "play"))
       }
     }
   ),
@@ -47,18 +66,19 @@ Stage <- R6Class(
     steps = NULL,
 
     prepare_one = function(step) {
-      if (identical(body(step$prepare), body(TicStep$public_methods$prepare)))
+      if (identical(body(step$prepare), body(TicStep$public_methods$prepare))) {
         return()
+      }
 
       if (!isTRUE(step$check())) {
-        ci()$cat_with_color(
+        ci_cat_with_color(
           crayon::magenta(paste0("Skipping prepare: ", step$name))
         )
         print(step$check)
         return()
       }
 
-      ci()$cat_with_color(
+      ci_cat_with_color(
         crayon::magenta(paste0("Preparing: ", step$name))
       )
       step$prepare()
@@ -68,16 +88,18 @@ Stage <- R6Class(
 
     run_one = function(step) {
       if (!isTRUE(step$check())) {
-        ci()$cat_with_color(
+        ci_cat_with_color(
           crayon::magenta(paste0("Skipping ", private$name, ": ", step$name))
         )
         print(step$check)
         return(TRUE)
       }
 
-      ci()$cat_with_color(
+      ci_cat_with_color(
         crayon::magenta(paste0("Running ", private$name, ": ", step$name))
       )
+
+      top <- environment()
 
       tryCatch(
         {
@@ -87,9 +109,9 @@ Stage <- R6Class(
               TRUE
             },
             error = function(e) {
-              ci()$cat_with_color(crayon::red(paste0("Error: ", conditionMessage(e))))
-              tb <- format_traceback()
-              ci()$cat_with_color(crayon::yellow(tb))
+              ci_cat_with_color(crayon::red(paste0("Error: ", conditionMessage(e))))
+              tb <- format_traceback(top)
+              ci_cat_with_color(crayon::yellow(tb))
             }
           )
         },
@@ -100,3 +122,11 @@ Stage <- R6Class(
     }
   )
 )
+
+new_stages <- function(x) {
+  structure(x, class = "TicStages")
+}
+
+stage_is_empty <- function(x) {
+  x$is_empty()
+}

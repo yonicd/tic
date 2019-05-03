@@ -27,12 +27,10 @@ warning_once <- memoise::memoise(warningc)
   if (is.null(o1)) o2 else o1
 }
 
-cat_line <- function(...) {
-  cat(..., "\n", sep = "")
-}
-
 get_deps_from_code <- function(call) {
-  if (!is.call(call)) return(character())
+  if (!is.call(call)) {
+    return(character())
+  }
 
   if (identical(call[[1]], quote(`::`))) {
     as.character(call[[2]])
@@ -62,17 +60,11 @@ package_installed <- function(pkg_name) {
   file.exists(path)
 }
 
-with_traceback <- function(...) {
-  withr::with_options(
-    list(
-      error = expression({traceback(1); if (!interactive()) q(status = 1)}),
-      deparse.max.lines = 2
-    ),
-    ...
-  )
+format_traceback <- function(top = NULL, bottom = parent.frame()) {
+  paste(format(trace_back(top, bottom)), collapse = "\n")
 }
 
-format_traceback <- function() {
-  x <- .traceback(rev(sys.calls()))
-  paste0(format(seq_along(x)), ". ", x, collapse = "\n")
+tempfile_slash <- function(pattern = "file", tmpdir = tempdir(), fileext = "") {
+  path <- tempfile(pattern, tmpdir, fileext)
+  normalizePath(path, winslash = "/", mustWork = FALSE)
 }

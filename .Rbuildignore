@@ -1,3 +1,5 @@
+^codecov\.yml$
+^appveyor\.yml$
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^\.httr-oauth$
@@ -5,3 +7,4 @@
 ^tic\.R$
 ^_pkgdown\.yml$
 ^docs$
+^pkgdown/

@@ -1,11 +1,11 @@
 RunCode <- R6Class(
-  "RunCode", inherit = TicStep,
+  "RunCode",
+  inherit = TicStep,
 
   public = list(
-    initialize = function(call, prepare_call = NULL,
-                          .call = substitute(call), .prepare_call = substitute(prepare_call)) {
-      private$call <- .call
-      private$prepare_call <- .prepare_call
+    initialize = function(call, prepare_call = NULL) {
+      private$call <- enexpr(call)
+      private$prepare_call <- enexpr(prepare_call)
       private$seed <- 123
     },
 
@@ -39,7 +39,7 @@ RunCode <- R6Class(
   )
 )
 
-#' Step: Run arbitrary code
+#' Step: Run arbitrary R code
 #'
 #' Captures the expression and executes it when running the step.
 #' An optional preparatory expression can be provided that is executed
@@ -48,11 +48,11 @@ RunCode <- R6Class(
 #' `package::fun()`), the package is installed during preparation.
 #'
 #' @param call `[call]`\cr
-#'   An arbitrary expression executed during the stage to which this step is
+#'   An arbitrary R expression executed during the stage to which this step is
 #'   added.
 #'   The default is useful if you only pass `prepare_call`.
 #' @param prepare_call `[call]`\cr
-#'   An optional arbitrary expression executed during preparation.
+#'   An optional arbitrary R expression executed during preparation.
 #' @family steps
 #' @examples
 #' step_run_code(update.packages(ask = FALSE))
@@ -61,5 +61,5 @@ RunCode <- R6Class(
 #' step_run_code(covr::codecov())
 #' @export
 step_run_code <- function(call = NULL, prepare_call = NULL) {
-  RunCode$new(.call = substitute(call), .prepare_call = substitute(prepare_call))
+  RunCode$new(!!enexpr(call), !!enexpr(prepare_call))
 }
